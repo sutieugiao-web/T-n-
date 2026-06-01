@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>HTML Builder Pro</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#111;
+    color:#fff;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+.topbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:10px;
+    background:#222;
+}
+
+button{
+    border:none;
+    border-radius:8px;
+    padding:10px 15px;
+    cursor:pointer;
+    color:#fff;
+    font-weight:bold;
+}
+
+.paste{background:#2196F3;}
+.run{background:#4CAF50;}
+.copy{background:#FF9800;}
+.clear{background:#F44336;}
+.page{background:#9C27B0;}
+.link{background:#00BCD4;}
+.save{background:#607D8B;}
+.full{background:#795548;}
+
+textarea{
+    width:100%;
+    height:40%;
+    background:#1a1a1a;
+    color:#fff;
+    border:none;
+    outline:none;
+    padding:15px;
+    resize:none;
+    font-size:14px;
+}
+
+iframe{
+    flex:1;
+    width:100%;
+    border:none;
+    background:#fff;
+}
+
+#linkBox{
+    background:#222;
+    padding:10px;
+    word-break:break-all;
+}
+
+#generatedLink{
+    color:#00e5ff;
+}
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <button class="paste" onclick="pasteCode()">📥 Dán</button>
+    <button class="run" onclick="runCode()">▶ Chạy</button>
+    <button class="copy" onclick="copyCode()">📋 Sao chép</button>
+    <button class="clear" onclick="clearCode()">🗑 Xóa</button>
+    <button class="page" onclick="openPage()">🌐 Trang Riêng</button>
+    <button class="link" onclick="createLink()">🔗 Tạo Liên Kết</button>
+    <button class="save" onclick="downloadHTML()">💾 Xuất HTML</button>
+    <button class="full" onclick="toggleFullscreen()">⛶ Full</button>
+</div>
+
+<textarea id="code" placeholder="Dán HTML vào đây...">
+<!DOCTYPE html>
+<html>
+<head>
+<title>Trang Demo</title>
+<style>
+body{
+font-family:Arial;
+text-align:center;
+padding:50px;
+}
+</style>
+</head>
+<body>
+<h1>Xin chào!</h1>
+<p>Đây là trang HTML của bạn.</p>
+</body>
+</html>
+</textarea>
+
+<div id="linkBox">
+Liên kết:
+<a id="generatedLink" target="_blank">Chưa tạo</a>
+</div>
+
+<iframe id="preview"></iframe>
+
+<script>
+const editor = document.getElementById("code");
+const preview = document.getElementById("preview");
+
+if(localStorage.getItem("saved_html")){
+    editor.value = localStorage.getItem("saved_html");
+}
+
+function autoSave(){
+    localStorage.setItem("saved_html", editor.value);
+}
+
+editor.addEventListener("input", autoSave);
+
+async function pasteCode(){
+    try{
+        const text = await navigator.clipboard.readText();
+        editor.value = text;
+        autoSave();
+    }catch{
+        alert("Không thể dán.");
+    }
+}
+
+function runCode(){
+    preview.srcdoc = editor.value;
+}
+
+function copyCode(){
+    navigator.clipboard.writeText(editor.value);
+    alert("Đã sao chép!");
+}
+
+function clearCode(){
+    if(confirm("Xóa toàn bộ code?")){
+        editor.value="";
+        preview.srcdoc="";
+        localStorage.removeItem("saved_html");
+    }
+}
+
+function openPage(){
+    const win = window.open();
+    win.document.open();
+    win.document.write(editor.value);
+    win.document.close();
+}
+
+function createLink(){
+    const blob = new Blob([editor.value], {type:"text/html"});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.getElementById("generatedLink");
+    a.href = url;
+    a.textContent = url;
+
+    alert("Đã tạo liên kết!");
+}
+
+function downloadHTML(){
+    const blob = new Blob([editor.value], {type:"text/html"});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "index.html";
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
+function toggleFullscreen(){
+    if(!document.fullscreenElement){
+        document.documentElement.requestFullscreen();
+    }else{
+        document.exitFullscreen();
+    }
+}
+
+runCode();
+
+editor.addEventListener("input", runCode);
+</script>
+
+</body>
+</html>
